@@ -34,8 +34,5 @@
     "typescript": "^5.7",
     "vitest": "^2.1"{% if persistence ~= 'None' %},
     "drizzle-kit": "^0.30"{% endif %}
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": ["esbuild", "pulsar-client"]
   }
 }
