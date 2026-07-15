@@ -30,7 +30,6 @@ async function main() {
       serveManagement(),
     ]);
   } finally {
-    server.close();
 {% if persistence ~= 'None' %}    await closeDb();
 {% endif %}{% if cache ~= 'None' %}    await closeCache();
 {% endif %}{% if messaging ~= 'None' %}    await closeMessaging();
