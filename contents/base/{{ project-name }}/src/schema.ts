@@ -1,5 +1,6 @@
 import { createSchema } from 'graphql-yoga';
-{% if persistence ~= 'None' %}import type { getDb } from './resources/persistence';
+{% if persistence ~= 'None' %}import type { getDb } from './persistence/init';
+import { resolvers } from './persistence/resolvers';
 {% endif %}{% if cache ~= 'None' %}import type { getCache } from './resources/cache';
 {% endif %}{% if messaging ~= 'None' %}import type { getProducer } from './resources/messaging';
 {% endif %}
@@ -24,9 +25,17 @@ export const schema = createSchema<AppContext>({
 
     type Mutation {
       create{{ PrefixName }}{{ SuffixName }}(displayName: String!): {{ PrefixName }}{{ SuffixName }}!
-      update{{ PrefixName }}{{ SuffixName }}(id: ID!, displayName: String!): {{ PrefixName }}{{ SuffixName }}!
+      update{{ PrefixName }}{{ SuffixName }}(id: ID!, displayName: String!): {{ PrefixName }}{{ SuffixName }}
+      delete{{ PrefixName }}{{ SuffixName }}(id: ID!): Boolean!
     }
   `,
+{% if persistence ~= 'None' %}
+  // Persisted resolvers over the Item scaffold entity (src/persistence/schema.ts).
+  // Replace alongside your real domain model.
+  resolvers,
+{% else %}
+  // In-memory stub resolvers — nothing is persisted. Select a persistence option to render the
+  // scaffold CRUD backed by a real database.
   resolvers: {
     Query: {
       health: () => 'OK',
@@ -36,6 +45,8 @@ export const schema = createSchema<AppContext>({
     Mutation: {
       create{{ PrefixName }}{{ SuffixName }}: (_parent, { displayName }) => ({ id: crypto.randomUUID(), displayName }),
       update{{ PrefixName }}{{ SuffixName }}: (_parent, { id, displayName }) => ({ id, displayName }),
+      delete{{ PrefixName }}{{ SuffixName }}: () => false,
     },
   },
+{% endif %}
 });

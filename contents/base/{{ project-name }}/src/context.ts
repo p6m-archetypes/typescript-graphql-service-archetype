@@ -1,4 +1,4 @@
-{% if persistence ~= 'None' %}import { getDb } from './resources/persistence';
+{% if persistence ~= 'None' %}import { getDb } from './persistence/init';
 {% endif %}{% if cache ~= 'None' %}import { getCache } from './resources/cache';
 {% endif %}{% if messaging ~= 'None' %}import { getProducer } from './resources/messaging';
 {% endif %}import type { AppContext } from './schema';
