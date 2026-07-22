@@ -27,7 +27,7 @@ jobs:
       archetype_repo: ${{ github.repository }}
       archetype_ref: ${{ github.sha }}
       harness_ref: dev
-      keep_resources: ${{ github.event_name == 'push' || github.event.inputs.keep_resources == 'true' }}
+      keep_resources: ${{ github.event.inputs.keep_resources == 'true' }}
       answers: |
         author_name: "Archetype E2E"
         author_email: "e2e@ybor.ai"
