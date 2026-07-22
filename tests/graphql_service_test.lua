@@ -4,8 +4,11 @@
 ---
 --- The BEHAVIORAL bar — CRUD through the production image, the platform env contract, health/
 --- metrics/structured logs, both name shapes — lives in tests/standards_test.lua (the shared
---- p6m standards suite), fully containerized: docker is the only requirement. The `build_steps`
---- here are gated on a host toolchain (pnpm) and skip cleanly where it's absent.
+--- p6m standards suite), fully containerized: docker is the only requirement. No host toolchain
+--- is invoked here either (S8b): compile coverage is containerized — the standards SUT builds
+--- each persistence variant's production image, and the hollow (None) rendering is proven by a
+--- docker-gated `docker.build` of its production Dockerfile below. The rendered project's own
+--- unit tests (Vitest) belong to the rendered project's CI, not to this suite.
 ---
 --- Run from the archetype repo root (uses ./prova.toml):   prova
 
@@ -27,12 +30,6 @@ local function answers_with(extra)
   for k, v in pairs(extra) do out[k] = v end
   return out
 end
-
--- `pnpm install` is idempotent, and on some node builds (e.g. nix nodejs 24 on macOS) pnpm
--- crashes in libuv at process exit (kqueue.c EINTR assert) *after* the install has completed.
--- Retry once: the second run is a fast no-op that confirms success; a genuine install failure
--- fails both attempts.
-local PNPM_INSTALL = "pnpm install || pnpm install"
 
 -- Files the persistence scaffold must produce (relative to the rendered project root).
 local SCAFFOLD_FILES = {
@@ -79,17 +76,21 @@ for _, persistence in ipairs({ "PostgreSQL", "MySQL" }) do
       SCAFFOLD_FILES[1], SCAFFOLD_FILES[2], SCAFFOLD_FILES[3], SCAFFOLD_FILES[4],
     },
     yaml_globs = { ".platform/kubernetes/**/*.yaml" },
-    requires = { "pnpm" },
-    build_steps = { PNPM_INSTALL, "pnpm exec tsc --noEmit" },
   })
 end
 
--- The hollow rendering stays hollow: no persistence, no scaffold files. Its own Vitest suite
--- (management health + GraphQL health query) runs here — in-process, no live servers.
-archetect.verify{
+-- The hollow rendering stays hollow: no persistence, no scaffold files.
+local none_project = prova.fixture("typescript-graphql[None]:project", Scope.File, function(ctx)
+  return archetect.render{
+    source = SRC,
+    answers = answers_with{ persistence = "None" },
+    destination = ctx:tempdir(),
+    defaults = true,
+  }
+end)
+
+archetect.verify(none_project, {
   name = "typescript-graphql[None]",
-  source = SRC,
-  answers = answers_with{ persistence = "None" },
   project_dir = "example-service",
   expected_files = {
     "package.json",
@@ -103,6 +104,18 @@ archetect.verify{
   },
   absent_files = SCAFFOLD_FILES,
   yaml_globs = { ".platform/kubernetes/**/*.yaml" },
-  requires = { "pnpm" },
-  build_steps = { PNPM_INSTALL, "pnpm test" },
-}
+})
+
+-- Containerized compile proof for the hollow variant (S8b): the persistence variants compile
+-- inside the standards SUT image builds; None never boots there, so prove it compiles (tsup
+-- build included) by building its production image — build success IS the compile check.
+prova.group("typescript-graphql[None]:image", { requires = { "docker" } }, function(g)
+  g:test("production image builds from a clean render", function(t)
+    local root = t:use(none_project):dir("example-service")
+    local image = docker.build{
+      context = root.path,
+      dockerfile = ".platform/docker/prd/Dockerfile",
+    }
+    t:expect(image, "built image"):never():is_nil()
+  end)
+end)
