@@ -10,23 +10,25 @@ export type AppContext = {
 {% endif %}{% if messaging ~= 'None' %}  producer?: ReturnType<typeof getProducer>;
 {% endif %}};
 
+// The GraphQL surface is the platform standard (S2): entity-named type, prefix-free query
+// fields ({{ prefixName }} / {{ prefixName }}s — naive plural), create/update/delete mutations.
 export const schema = createSchema<AppContext>({
   typeDefs: `
-    type {{ PrefixName }}{{ SuffixName }} {
+    type {{ PrefixName }} {
       id: ID!
       displayName: String!
     }
 
     type Query {
       health: String!
-      get{{ PrefixName }}{{ SuffixName }}(id: ID!): {{ PrefixName }}{{ SuffixName }}
-      list{{ PrefixName }}{{ SuffixName }}s: [{{ PrefixName }}{{ SuffixName }}!]!
+      {{ prefixName }}(id: ID!): {{ PrefixName }}
+      {{ prefixName }}s: [{{ PrefixName }}!]!
     }
 
     type Mutation {
-      create{{ PrefixName }}{{ SuffixName }}(displayName: String!): {{ PrefixName }}{{ SuffixName }}!
-      update{{ PrefixName }}{{ SuffixName }}(id: ID!, displayName: String!): {{ PrefixName }}{{ SuffixName }}
-      delete{{ PrefixName }}{{ SuffixName }}(id: ID!): Boolean!
+      create{{ PrefixName }}(displayName: String!): {{ PrefixName }}!
+      update{{ PrefixName }}(id: ID!, displayName: String!): {{ PrefixName }}
+      delete{{ PrefixName }}(id: ID!): Boolean!
     }
   `,
 {% if persistence ~= 'None' %}
@@ -39,13 +41,13 @@ export const schema = createSchema<AppContext>({
   resolvers: {
     Query: {
       health: () => 'OK',
-      get{{ PrefixName }}{{ SuffixName }}: (_parent, { id }) => ({ id, displayName: '' }),
-      list{{ PrefixName }}{{ SuffixName }}s: () => [],
+      {{ prefixName }}: (_parent, { id }) => ({ id, displayName: '' }),
+      {{ prefixName }}s: () => [],
     },
     Mutation: {
-      create{{ PrefixName }}{{ SuffixName }}: (_parent, { displayName }) => ({ id: crypto.randomUUID(), displayName }),
-      update{{ PrefixName }}{{ SuffixName }}: (_parent, { id, displayName }) => ({ id, displayName }),
-      delete{{ PrefixName }}{{ SuffixName }}: () => false,
+      create{{ PrefixName }}: (_parent, { displayName }) => ({ id: crypto.randomUUID(), displayName }),
+      update{{ PrefixName }}: (_parent, { id, displayName }) => ({ id, displayName }),
+      delete{{ PrefixName }}: () => false,
     },
   },
 {% endif %}

@@ -10,22 +10,22 @@ import { getDb } from './init';
 export const resolvers = {
   Query: {
     health: () => 'OK',
-    get{{ PrefixName }}{{ SuffixName }}: async (_parent: unknown, { id }: { id: string }) => {
+    {{ prefixName }}: async (_parent: unknown, { id }: { id: string }) => {
       const [item] = await getDb().select().from(items).where(eq(items.id, id));
       return item ?? null;
     },
-    list{{ PrefixName }}{{ SuffixName }}s: async () =>
+    {{ prefixName }}s: async () =>
       getDb().select().from(items).orderBy(items.createdAt),
   },
   Mutation: {
-    create{{ PrefixName }}{{ SuffixName }}: async (_parent: unknown, { displayName }: { displayName: string }) => {
+    create{{ PrefixName }}: async (_parent: unknown, { displayName }: { displayName: string }) => {
       const db = getDb();
       const id = randomUUID();
       await db.insert(items).values({ id, displayName });
       const [item] = await db.select().from(items).where(eq(items.id, id));
       return item;
     },
-    update{{ PrefixName }}{{ SuffixName }}: async (_parent: unknown, { id, displayName }: { id: string; displayName: string }) => {
+    update{{ PrefixName }}: async (_parent: unknown, { id, displayName }: { id: string; displayName: string }) => {
       const db = getDb();
       const [existing] = await db.select().from(items).where(eq(items.id, id));
       if (!existing) return null;
@@ -33,7 +33,7 @@ export const resolvers = {
       const [item] = await db.select().from(items).where(eq(items.id, id));
       return item ?? null;
     },
-    delete{{ PrefixName }}{{ SuffixName }}: async (_parent: unknown, { id }: { id: string }) => {
+    delete{{ PrefixName }}: async (_parent: unknown, { id }: { id: string }) => {
       const db = getDb();
       const [existing] = await db.select().from(items).where(eq(items.id, id));
       if (!existing) return false;
