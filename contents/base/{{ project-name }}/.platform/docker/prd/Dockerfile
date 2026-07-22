@@ -1,5 +1,6 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
+ENV CI=true
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
 RUN npm install -g pnpm && pnpm install --frozen-lockfile
 COPY . .
