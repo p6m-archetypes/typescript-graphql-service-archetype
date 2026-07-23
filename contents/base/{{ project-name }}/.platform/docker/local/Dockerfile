@@ -1,8 +1,11 @@
 FROM node:22-alpine AS builder
 WORKDIR /app
 ENV CI=true
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc* ./
-RUN npm install -g pnpm && pnpm install --frozen-lockfile
+COPY package.json pnpm-lock.yaml* pnpm-workspace.yaml* .npmrc* ./
+# A fresh render ships no lockfile (variant renderings change the dependency set, so no single
+# static lockfile can be valid for all of them). Once the rendered project commits its own
+# pnpm-lock.yaml, the frozen path engages automatically and stays authoritative.
+RUN npm install -g pnpm && if [ -f pnpm-lock.yaml ]; then pnpm install --frozen-lockfile; else pnpm install; fi
 COPY . .
 RUN pnpm build
 
