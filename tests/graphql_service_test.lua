@@ -12,6 +12,8 @@
 ---
 --- Run from the archetype repo root (uses ./prova.toml):   prova
 
+local p6m = require("p6m")
+
 local SRC = "."
 
 local BASE_ANSWERS = {
@@ -118,4 +120,17 @@ prova.group("typescript-graphql[None]:image", { requires = { "docker" } }, funct
     }
     t:expect(image, "built image"):never():is_nil()
   end)
+end)
+
+-- CI parity (S10): the rendered project's own Build workflow path — js-pnpm-setup/js-pnpm-build's
+-- exact command sequence on a fresh clone, in the toolchain image. The Dockerfile and CI are two
+-- independent build paths; only the first was held above, and the drift bit on 2026-07-23 (CI's
+-- `pnpm build` needed proto codegen only the Dockerfile ran). The hollow render suffices:
+-- resource variants change dependencies, not the command path.
+prova.group("typescript-graphql[None]:ci", { requires = { "docker" }, tags = { "standards" } }, function(g)
+  p6m.standards.ci_parity(g, none_project, {
+    stack = "pnpm",
+    project_dir = "example-service",
+    name = "typescript-graphql",
+  })
 end)
