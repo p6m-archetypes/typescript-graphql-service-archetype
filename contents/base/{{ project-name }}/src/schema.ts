@@ -32,7 +32,7 @@ export const schema = createSchema<AppContext>({
     }
   `,
 {% if persistence ~= 'None' %}
-  // Persisted resolvers over the Item scaffold entity (src/persistence/schema.ts).
+  // Persisted resolvers over the {{ EntityName }} scaffold entity (src/persistence/schema.ts).
   // Replace alongside your real domain model.
   resolvers,
 {% else %}
