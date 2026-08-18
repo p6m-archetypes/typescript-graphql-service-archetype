@@ -11,24 +11,24 @@ export type AppContext = {
 {% endif %}};
 
 // The GraphQL surface is the platform standard (S2): entity-named type, prefix-free query
-// fields ({{ prefixName }} / {{ prefixName }}s — naive plural), create/update/delete mutations.
+// fields ({{ entityName }} / {{ entityName }}s — naive plural), create/update/delete mutations.
 export const schema = createSchema<AppContext>({
   typeDefs: `
-    type {{ PrefixName }} {
+    type {{ EntityName }} {
       id: ID!
       displayName: String!
     }
 
     type Query {
       health: String!
-      {{ prefixName }}(id: ID!): {{ PrefixName }}
-      {{ prefixName }}s: [{{ PrefixName }}!]!
+      {{ entityName }}(id: ID!): {{ EntityName }}
+      {{ entityName }}s: [{{ EntityName }}!]!
     }
 
     type Mutation {
-      create{{ PrefixName }}(displayName: String!): {{ PrefixName }}!
-      update{{ PrefixName }}(id: ID!, displayName: String!): {{ PrefixName }}
-      delete{{ PrefixName }}(id: ID!): Boolean!
+      create{{ EntityName }}(displayName: String!): {{ EntityName }}!
+      update{{ EntityName }}(id: ID!, displayName: String!): {{ EntityName }}
+      delete{{ EntityName }}(id: ID!): Boolean!
     }
   `,
 {% if persistence ~= 'None' %}
@@ -41,13 +41,13 @@ export const schema = createSchema<AppContext>({
   resolvers: {
     Query: {
       health: () => 'OK',
-      {{ prefixName }}: (_parent, { id }) => ({ id, displayName: '' }),
-      {{ prefixName }}s: () => [],
+      {{ entityName }}: (_parent, { id }) => ({ id, displayName: '' }),
+      {{ entityName }}s: () => [],
     },
     Mutation: {
-      create{{ PrefixName }}: (_parent, { displayName }) => ({ id: crypto.randomUUID(), displayName }),
-      update{{ PrefixName }}: (_parent, { id, displayName }) => ({ id, displayName }),
-      delete{{ PrefixName }}: () => false,
+      create{{ EntityName }}: (_parent, { displayName }) => ({ id: crypto.randomUUID(), displayName }),
+      update{{ EntityName }}: (_parent, { id, displayName }) => ({ id, displayName }),
+      delete{{ EntityName }}: () => false,
     },
   },
 {% endif %}
