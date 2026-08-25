@@ -1,0 +1,7 @@
+# Keep host build state out of the image build context — both Dockerfiles COPY . . and a host
+# install's node_modules (platform-specific binaries) or dist would poison the in-image build.
+node_modules/
+dist/
+.git/
+.platform/
+*.md
